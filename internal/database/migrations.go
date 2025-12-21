@@ -17,7 +17,7 @@ func migratePostgreSQL(db *sql.DB) {
     (
         id_user SERIAL PRIMARY KEY,
         usercode VARCHAR(255),
-        email VARCHAR(255) UNIQUE NOT NULL,
+        email VARCHAR(255),
         fnamet VARCHAR(255),
         lnamet VARCHAR(255),
         fnamee VARCHAR(255),

@@ -68,10 +68,11 @@ func Load() {
 	dbType, _ := strconv.Atoi(getEnv("DATABASE_TYPE", "1"))
 
 	AppConfig = &Config{
-		DatabaseType:    dbType,
-		EnableMongoDB:   getEnvAsBool("ENABLE_MONGODB", false),
-		EnableMySQL:     getEnvAsBool("ENABLE_MYSQL", false),
-		EnableSQLServer: getEnvAsBool("ENABLE_SQLSERVER", true),
+		DatabaseType:     dbType,
+		EnableMongoDB:    getEnvAsBool("ENABLE_MONGODB", false),
+		EnableMySQL:      getEnvAsBool("ENABLE_MYSQL", false),
+		EnablePostgreSQL: getEnvAsBool("ENABLE_POSTGRESQL", false), // ✅ เพิ่มบรรทัดนี้
+		EnableSQLServer:  getEnvAsBool("ENABLE_SQLSERVER", false),
 
 		DatabaseURL:  getEnv("DATABASE_URL", ""),
 		MongoDBURL:   getEnv("MONGODB_URL", ""),

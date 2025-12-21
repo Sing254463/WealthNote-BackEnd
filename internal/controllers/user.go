@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"WealthNoteBackend/internal/models"
+	"WealthNoteBackend/internal/services"
 	"WealthNoteBackend/pkg/utils"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,18 +20,10 @@ import (
 // @Router       /users [get]
 // @Security     BearerAuth
 func GetAllUsers(c *fiber.Ctx) error {
-	// TODO: Implement with actual database
-	users := []fiber.Map{
-		{
-			"id":    "1",
-			"name":  "John Doe",
-			"email": "john@example.com",
-		},
-		{
-			"id":    "2",
-			"name":  "Jane Smith",
-			"email": "jane@example.com",
-		},
+	// ✅ เชื่อมกับ database จริง
+	users, err := services.GetAllUsers()
+	if err != nil {
+		return utils.ErrorResponse(c, err.Error(), fiber.StatusInternalServerError)
 	}
 
 	return utils.SuccessResponse(c, users, "Users retrieved successfully")
@@ -47,55 +42,28 @@ func GetAllUsers(c *fiber.Ctx) error {
 // @Router       /users/{id} [get]
 // @Security     BearerAuth
 func GetUserByID(c *fiber.Ctx) error {
-	userID := c.Params("id")
+	// ✅ แปลง string เป็น int
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return utils.ErrorResponse(c, "Invalid user ID", fiber.StatusBadRequest)
+	}
 
-	// TODO: Implement with actual database
-	user := fiber.Map{
-		"id":    userID,
-		"name":  "John Doe",
-		"email": "john@example.com",
+	// ✅ เชื่อมกับ database จริง
+	user, err := services.GetUserByID(id)
+	if err != nil {
+		return utils.ErrorResponse(c, err.Error(), fiber.StatusNotFound)
 	}
 
 	return utils.SuccessResponse(c, user, "User retrieved successfully")
 }
 
-type CreateUserRequest struct {
-	Name     string `json:"name" validate:"required" example:"John Doe"`
-	Email    string `json:"email" validate:"required,email" example:"john@example.com"`
-	Password string `json:"password" validate:"required,min=6" example:"password123"`
-}
-
-// CreateUser godoc
-// @Summary      Create a new user
-// @Description  Create a new user account
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Param        request body CreateUserRequest true "User creation data"
-// @Success      201  {object}  map[string]interface{}
-// @Failure      400  {object}  map[string]interface{}
-// @Router       /users [post]
-// @Security     BearerAuth
-func CreateUser(c *fiber.Ctx) error {
-	var userData CreateUserRequest
-
-	if err := c.BodyParser(&userData); err != nil {
-		return utils.ErrorResponse(c, "Invalid input", fiber.StatusBadRequest)
-	}
-
-	// TODO: Implement with actual database
-	user := fiber.Map{
-		"id":    "new-user-id",
-		"name":  userData.Name,
-		"email": userData.Email,
-	}
-
-	return utils.SuccessResponse(c, user, "User created successfully")
-}
-
 type UpdateUserRequest struct {
-	Name  string `json:"name" validate:"required" example:"John Doe"`
-	Email string `json:"email" validate:"required,email" example:"john@example.com"`
+	UserCode *string `json:"usercode,omitempty"`
+	Email    *string `json:"email,omitempty" validate:"omitempty,email"`
+	FNameT   *string `json:"fnamet,omitempty"`
+	LNameT   *string `json:"lnamet,omitempty"`
+	FNameE   *string `json:"fnamee,omitempty"`
+	LNameE   *string `json:"lnamee,omitempty"`
 }
 
 // UpdateUser godoc
@@ -112,19 +80,31 @@ type UpdateUserRequest struct {
 // @Router       /users/{id} [put]
 // @Security     BearerAuth
 func UpdateUser(c *fiber.Ctx) error {
-	userID := c.Params("id")
+	// ✅ แปลง string เป็น int
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return utils.ErrorResponse(c, "Invalid user ID", fiber.StatusBadRequest)
+	}
 
 	var userData UpdateUserRequest
-
 	if err := c.BodyParser(&userData); err != nil {
 		return utils.ErrorResponse(c, "Invalid input", fiber.StatusBadRequest)
 	}
 
-	// TODO: Implement with actual database
-	user := fiber.Map{
-		"id":    userID,
-		"name":  userData.Name,
-		"email": userData.Email,
+	// ✅ แปลง request เป็น UpdateUserInput
+	input := models.UpdateUserInput{
+		UserCode: userData.UserCode,
+		Email:    userData.Email,
+		FNameT:   userData.FNameT,
+		LNameT:   userData.LNameT,
+		FNameE:   userData.FNameE,
+		LNameE:   userData.LNameE,
+	}
+
+	// ✅ เชื่อมกับ database จริง
+	user, err := services.UpdateUser(id, input)
+	if err != nil {
+		return utils.ErrorResponse(c, err.Error(), fiber.StatusInternalServerError)
 	}
 
 	return utils.SuccessResponse(c, user, "User updated successfully")
@@ -143,11 +123,18 @@ func UpdateUser(c *fiber.Ctx) error {
 // @Router       /users/{id} [delete]
 // @Security     BearerAuth
 func DeleteUser(c *fiber.Ctx) error {
-	userID := c.Params("id")
+	// ✅ แปลง string เป็น int
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return utils.ErrorResponse(c, "Invalid user ID", fiber.StatusBadRequest)
+	}
 
-	// TODO: Implement with actual database
+	// ✅ เชื่อมกับ database จริง
+	if err := services.DeleteUser(id); err != nil {
+		return utils.ErrorResponse(c, err.Error(), fiber.StatusInternalServerError)
+	}
 
 	return utils.SuccessResponse(c, fiber.Map{
-		"id": userID,
+		"id": id,
 	}, "User deleted successfully")
 }

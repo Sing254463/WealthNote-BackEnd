@@ -96,26 +96,6 @@ func GetUserByID(id int) (*models.User, error) {
 	return &user, nil
 }
 
-func CreateUser(usercode, email string) (*models.User, error) {
-	db := database.GetPostgresDB()
-
-	query := `INSERT INTO users (usercode, email)
-              VALUES ($1, $2)
-              RETURNING id_user, usercode, email, created_at, updated_at`
-
-	var user models.User
-	err := db.QueryRow(query, usercode, email).Scan(
-		&user.IDUser, &user.UserCode, &user.Email,
-		&user.CreatedAt, &user.UpdatedAt,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
 func UpdateUser(id int, input models.UpdateUserInput) (*models.User, error) {
 	db := database.GetPostgresDB()
 

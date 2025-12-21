@@ -1,22 +1,5 @@
 basePath: /api
 definitions:
-  controllers.CreateUserRequest:
-    properties:
-      email:
-        example: john@example.com
-        type: string
-      name:
-        example: John Doe
-        type: string
-      password:
-        example: password123
-        minLength: 6
-        type: string
-    required:
-    - email
-    - name
-    - password
-    type: object
   controllers.LoginRequest:
     properties:
       password:
@@ -73,14 +56,17 @@ definitions:
   controllers.UpdateUserRequest:
     properties:
       email:
-        example: john@example.com
         type: string
-      name:
-        example: John Doe
+      fnamee:
         type: string
-    required:
-    - email
-    - name
+      fnamet:
+        type: string
+      lnamee:
+        type: string
+      lnamet:
+        type: string
+      usercode:
+        type: string
     type: object
 host: localhost:3000
 info:
@@ -178,35 +164,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get all users
-      tags:
-      - users
-    post:
-      consumes:
-      - application/json
-      description: Create a new user account
-      parameters:
-      - description: User creation data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Create a new user
       tags:
       - users
   /users/{id}:
