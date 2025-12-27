@@ -8,6 +8,7 @@ import (
 func RunMigrations() {
 	if postgresDB != nil {
 		migratePostgreSQL(postgresDB)
+		transactionMigration(postgresDB)
 	}
 }
 
@@ -42,4 +43,8 @@ func migratePostgreSQL(db *sql.DB) {
 		log.Fatalf("Error creating users table: %v", err)
 	}
 	log.Println("✓ Users table migrated successfully")
+}
+
+func transactionMigration(db *sql.DB) {
+
 }

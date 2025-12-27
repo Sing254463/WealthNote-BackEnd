@@ -29,4 +29,7 @@ func SetupRoutes(app *fiber.App) {
 	users.Put("/:id", controllers.UpdateUser)
 	users.Delete("/:id", controllers.DeleteUser)
 
+	transaction := api.Group("/transactions")
+	transaction.Get("/", controllers.GetTransactionAll)
+
 }
