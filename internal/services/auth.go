@@ -3,18 +3,21 @@ package services
 import (
 	"WealthNoteBackend/internal/database"
 	"WealthNoteBackend/internal/models"
+	"WealthNoteBackend/internal/repositories"
 	"WealthNoteBackend/pkg/jwt"
-	"database/sql"
 	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
+	userRepo *repositories.UserRepository
 }
 
 func NewAuthService() *AuthService {
-	return &AuthService{}
+	return &AuthService{
+		userRepo: repositories.NewUserRepository(database.GetPostgresDB()),
+	}
 }
 
 func (s *AuthService) GenerateTokens(userID string) (string, string, error) {
@@ -38,20 +41,12 @@ func (s *AuthService) ValidateToken(tokenString string) error {
 
 // Login - เข้าสู่ระบบด้วย usercode
 func Login(usercode, password string) (string, string, error) {
-	db := database.GetPostgresDB()
+	userRepo := repositories.NewUserRepository(database.GetPostgresDB())
 
-	// ดึง user และ hashed password จาก database โดยใช้ usercode
-	var user models.User
-	var hashedPassword string
-
-	query := `SELECT id_user, usercode, email, password FROM users WHERE usercode = $1`
-	err := db.QueryRow(query, usercode).Scan(&user.IDUser, &user.UserCode, &user.Email, &hashedPassword)
-
-	if err == sql.ErrNoRows {
-		return "", "", errors.New("invalid usercode or password")
-	}
+	// ✅ ใช้ Repository แทน Query ตรงๆ
+	user, hashedPassword, err := userRepo.FindByUserCode(usercode)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("invalid usercode or password")
 	}
 
 	// เปรียบเทียบ password
@@ -76,11 +71,10 @@ func Login(usercode, password string) (string, string, error) {
 
 // Register - สมัครสมาชิกใหม่
 func Register(input models.RegisterInput) (*models.User, error) {
-	db := database.GetPostgresDB()
+	userRepo := repositories.NewUserRepository(database.GetPostgresDB())
 
-	// ตรวจสอบว่า usercode ซ้ำหรือไม่
-	var exists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE usercode = $1)", input.UserCode).Scan(&exists)
+	// ✅ ใช้ Repository เช็คข้อมูลซ้ำ
+	exists, err := userRepo.ExistsByUserCode(input.UserCode)
 	if err != nil {
 		return nil, err
 	}
@@ -88,8 +82,7 @@ func Register(input models.RegisterInput) (*models.User, error) {
 		return nil, errors.New("usercode already exists")
 	}
 
-	// ตรวจสอบว่า email ซ้ำหรือไม่
-	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", input.Email).Scan(&exists)
+	exists, err = userRepo.ExistsByEmail(input.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -103,25 +96,6 @@ func Register(input models.RegisterInput) (*models.User, error) {
 		return nil, err
 	}
 
-	// บันทึกผู้ใช้ใหม่
-	query := `INSERT INTO users (usercode, email, fnamet, lnamet, fnamee, lnamee, password)
-              VALUES ($1, $2, $3, $4, $5, $6, $7)
-              RETURNING id_user, usercode, email, fnamet, lnamet, fnamee, lnamee, created_at, updated_at`
-
-	var user models.User
-	err = db.QueryRow(
-		query,
-		input.UserCode, input.Email, input.FNameT, input.LNameT,
-		input.FNameE, input.LNameE, string(hashedPassword),
-	).Scan(
-		&user.IDUser, &user.UserCode, &user.Email,
-		&user.FNameT, &user.LNameT, &user.FNameE, &user.LNameE,
-		&user.CreatedAt, &user.UpdatedAt,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	// ✅ ใช้ Repository สร้าง user
+	return userRepo.Create(input, string(hashedPassword))
 }
