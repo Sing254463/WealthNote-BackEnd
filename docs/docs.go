@@ -155,6 +155,65 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "สร้าง transaction ใหม่สำหรับ user ที่ login",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Create Transaction",
+                "parameters": [
+                    {
+                        "description": "Transaction data",
+                        "name": "transaction",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTransactionInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Transaction created successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
             }
         },
         "/users": {
@@ -448,6 +507,39 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "usercode": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateTransactionInput": {
+            "type": "object",
+            "required": [
+                "amount",
+                "id_category",
+                "id_type",
+                "title",
+                "transaction_date"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id_category": {
+                    "type": "integer"
+                },
+                "id_type": {
+                    "type": "integer"
+                },
+                "other_category_name": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "transaction_date": {
                     "type": "string"
                 }
             }

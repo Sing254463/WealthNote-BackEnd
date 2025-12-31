@@ -9,10 +9,12 @@ type TransactionRepository struct {
 	db *sql.DB
 }
 
+// NewTransactionRepository - สร้าง instance ของ TransactionRepository
 func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 	return &TransactionRepository{db: db}
 }
 
+// FindByUserID - ดึง transactions ของ user
 func (r *TransactionRepository) FindByUserID(userID int) ([]models.Transaction, error) {
 	query := `
         SELECT 
@@ -51,12 +53,12 @@ func (r *TransactionRepository) FindByUserID(userID int) ([]models.Transaction, 
 			&transaction.ID,
 			&transaction.IDUser,
 			&transaction.IDType,
-			&typeNameT, // ชื่อประเภท
+			&typeNameT,
 			&transaction.Title,
 			&transaction.Description,
 			&transaction.Amount,
 			&transaction.IDCategory,
-			&categoryNameT, // ชื่อหมวดหมู่
+			&categoryNameT,
 			&transaction.OtherCategoryName,
 			&transaction.TransactionDate,
 			&transaction.CreatedAt,
@@ -69,4 +71,51 @@ func (r *TransactionRepository) FindByUserID(userID int) ([]models.Transaction, 
 	}
 
 	return transactions, nil
+}
+
+// CreateTransaction - สร้าง transaction ใหม่
+func (r *TransactionRepository) CreateTransaction(input models.CreateTransactionInput) (*models.Transaction, error) {
+	query := `
+        INSERT INTO transactions(
+            id_user, id_type, 
+            title, description, amount, 
+            id_category, other_category_name, 
+            transaction_date, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        RETURNING id, id_user, id_type, title, description, amount, 
+                  id_category, other_category_name, transaction_date, 
+                  created_at, updated_at
+    `
+
+	var transaction models.Transaction
+	err := r.db.QueryRow(
+		query,
+		input.IDUser,
+		input.IDType,
+		input.Title,
+		input.Description,
+		input.Amount,
+		input.IDCategory,
+		input.OtherCategoryName,
+		input.TransactionDate,
+	).Scan(
+		&transaction.ID,
+		&transaction.IDUser,
+		&transaction.IDType,
+		&transaction.Title,
+		&transaction.Description,
+		&transaction.Amount,
+		&transaction.IDCategory,
+		&transaction.OtherCategoryName,
+		&transaction.TransactionDate,
+		&transaction.CreatedAt,
+		&transaction.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &transaction, nil
 }

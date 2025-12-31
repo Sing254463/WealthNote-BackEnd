@@ -92,6 +92,16 @@ func transactionMigration(db *sql.DB) {
     
     COMMENT ON TABLE public.transactions IS 'เป็น Tables สำหรับเก็บข้อมูลธุรกรรมทางการเงิน';
     `
+
+	ALTER_id_type_category_table := `
+    ALTER TABLE category
+ADD COLUMN IF NOT EXISTS id_type INT;
+`
+
+	// ✅ เพิ่ม Comment อธิบายคอลัมน์
+	addColumnComment := `
+    COMMENT ON COLUMN category.id_type IS 'ประเภทของหมวดหมู่ (1=รายรับ, 2=รายจ่าย)';
+    `
 	var err error
 	// Create type_transactions table
 	_, err = db.Exec(createTypeTransactionsTable)
@@ -113,4 +123,17 @@ func transactionMigration(db *sql.DB) {
 		log.Fatalf("Error creating transactions table: %v", err)
 	}
 	log.Println("✓ Transactions table migrated successfully")
+
+	_, err = db.Exec(ALTER_id_type_category_table)
+	if err != nil {
+		log.Fatalf("Error ALTER TABLE category ADD COLUMN id_type: %v", err)
+	}
+	log.Println("✓ Transactions ALTER TABLE category ADD COLUMN id_type successfully")
+	// ✅ เพิ่ม Comment
+	_, err = db.Exec(addColumnComment)
+	if err != nil {
+		log.Printf("Warning: Could not add column comment: %v", err)
+	} else {
+		log.Println("✓ Column comment added successfully")
+	}
 }

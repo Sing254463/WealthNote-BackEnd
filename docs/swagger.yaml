@@ -68,6 +68,29 @@ definitions:
       usercode:
         type: string
     type: object
+  models.CreateTransactionInput:
+    properties:
+      amount:
+        type: number
+      description:
+        type: string
+      id_category:
+        type: integer
+      id_type:
+        type: integer
+      other_category_name:
+        type: string
+      title:
+        type: string
+      transaction_date:
+        type: string
+    required:
+    - amount
+    - id_category
+    - id_type
+    - title
+    - transaction_date
+    type: object
 host: localhost:3000
 info:
   contact:
@@ -169,6 +192,45 @@ paths:
       security:
       - BearerAuth: []
       summary: Get User Transactions
+      tags:
+      - Transactions
+    post:
+      consumes:
+      - application/json
+      description: สร้าง transaction ใหม่สำหรับ user ที่ login
+      parameters:
+      - description: Transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTransactionInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Transaction created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create Transaction
       tags:
       - Transactions
   /users:
