@@ -2,57 +2,65 @@ package jwt
 
 import (
 	"errors"
+	"os"
 	"time"
-
-	"WealthNoteBackend/internal/config"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// CustomClaims defines the structure for custom JWT claims
+type CustomClaims struct {
+	UserID string `json:"user_id"`
+	jwt.RegisteredClaims
+}
+
 // GenerateToken generates a new JWT token with a specified expiration time.
-func GenerateToken(userID string, isLongLived bool) (string, error) {
-	var expirationTime time.Duration
-	if isLongLived {
-		duration, err := time.ParseDuration(config.AppConfig.JWTExpirationLong)
-		if err != nil {
-			expirationTime = 15 * 24 * time.Hour // fallback to 15 days
-		} else {
-			expirationTime = duration
-		}
-	} else {
-		duration, err := time.ParseDuration(config.AppConfig.JWTExpirationShort)
-		if err != nil {
-			expirationTime = 15 * time.Minute // fallback to 15 minutes
-		} else {
-			expirationTime = duration
-		}
+func GenerateToken(userID string, isRefreshToken bool) (string, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", errors.New("JWT_SECRET is not set")
 	}
 
-	claims := &jwt.RegisteredClaims{
-		Subject:   userID,
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
+	var expirationTime time.Duration
+	if isRefreshToken {
+		expirationTime = 7 * 24 * time.Hour // 7 days
+	} else {
+		expirationTime = 15 * time.Minute // 15 minutes
+	}
+
+	claims := CustomClaims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(config.AppConfig.JWTSecret))
+	return token.SignedString([]byte(secret))
 }
 
 // ValidateToken validates the JWT token and returns the claims if valid.
-func ValidateToken(tokenString string) (*jwt.RegisteredClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
+func ValidateToken(tokenString string) (*CustomClaims, error) {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return nil, errors.New("JWT_SECRET is not set")
+	}
+
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return []byte(config.AppConfig.JWTSecret), nil
+		return []byte(secret), nil
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
 		return claims, nil
 	}
 
-	return nil, errors.New("invalid claims")
+	return nil, errors.New("invalid token")
 }

@@ -6,7 +6,8 @@ import (
 	"WealthNoteBackend/internal/repositories"
 )
 
-func GetTransactionAll() ([]models.Transaction, error) {
+// GetTransactionByUserID - ดึง transactions ของ user ที่ login
+func GetTransactionByUserID(userID int) ([]models.Transaction, error) {
 	transactionRepo := repositories.NewTransactionRepository(database.GetPostgresDB())
-	return transactionRepo.FindAll()
+	return transactionRepo.FindByUserID(userID)
 }
