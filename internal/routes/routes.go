@@ -2,6 +2,7 @@ package routes
 
 import (
 	"WealthNoteBackend/internal/controllers"
+	"WealthNoteBackend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -24,12 +25,14 @@ func SetupRoutes(app *fiber.App) {
 
 	// User routes
 	users := api.Group("/users")
+	users.Use(middleware.AuthMiddleware()) // ⚠️ ต้องมีบรรทัดนี้
 	users.Get("/", controllers.GetAllUsers)
 	users.Get("/:id", controllers.GetUserByID)
 	users.Put("/:id", controllers.UpdateUser)
 	users.Delete("/:id", controllers.DeleteUser)
 
 	transaction := api.Group("/transactions")
+	transaction.Use(middleware.AuthMiddleware()) // ⚠️ ต้องมีบรรทัดนี้
 	transaction.Get("/", controllers.GetTransactionAll)
 
 }

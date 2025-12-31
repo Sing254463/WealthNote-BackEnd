@@ -143,6 +143,34 @@ paths:
       summary: User registration
       tags:
       - auth
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: ดึงข้อมูล transactions ทั้งหมดของ user ที่ login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get User Transactions
+      tags:
+      - Transactions
   /users:
     get:
       consumes:

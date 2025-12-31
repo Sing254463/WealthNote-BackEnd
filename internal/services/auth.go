@@ -6,6 +6,7 @@ import (
 	"WealthNoteBackend/internal/repositories"
 	"WealthNoteBackend/pkg/jwt"
 	"errors"
+	"strconv" // ⚠️ ต้องมี import นี้
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -43,25 +44,26 @@ func (s *AuthService) ValidateToken(tokenString string) error {
 func Login(usercode, password string) (string, string, error) {
 	userRepo := repositories.NewUserRepository(database.GetPostgresDB())
 
-	// ✅ ใช้ Repository แทน Query ตรงๆ
 	user, hashedPassword, err := userRepo.FindByUserCode(usercode)
 	if err != nil {
 		return "", "", errors.New("invalid usercode or password")
 	}
 
-	// เปรียบเทียบ password
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
 		return "", "", errors.New("invalid usercode or password")
 	}
 
-	// สร้าง JWT tokens
-	accessToken, err := jwt.GenerateToken(string(user.IDUser), false)
+	// ⚠️ ผิด: string(user.IDUser) จะได้ Unicode character
+	// ✅ ถูก: ใช้ strconv.Itoa() เพื่อแปลง int เป็น string
+	userIDStr := strconv.Itoa(user.IDUser)
+
+	accessToken, err := jwt.GenerateToken(userIDStr, false)
 	if err != nil {
 		return "", "", err
 	}
 
-	refreshToken, err := jwt.GenerateToken(string(user.IDUser), true)
+	refreshToken, err := jwt.GenerateToken(userIDStr, true)
 	if err != nil {
 		return "", "", err
 	}
@@ -73,7 +75,6 @@ func Login(usercode, password string) (string, string, error) {
 func Register(input models.RegisterInput) (*models.User, error) {
 	userRepo := repositories.NewUserRepository(database.GetPostgresDB())
 
-	// ✅ ใช้ Repository เช็คข้อมูลซ้ำ
 	exists, err := userRepo.ExistsByUserCode(input.UserCode)
 	if err != nil {
 		return nil, err
@@ -90,12 +91,10 @@ func Register(input models.RegisterInput) (*models.User, error) {
 		return nil, errors.New("email already exists")
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
-	// ✅ ใช้ Repository สร้าง user
 	return userRepo.Create(input, string(hashedPassword))
 }
