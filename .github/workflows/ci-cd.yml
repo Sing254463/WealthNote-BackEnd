@@ -1,0 +1,50 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, Sing ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # ✅ เพิ่มเพื่อให้ trigger manual ได้
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Run tests
+        run: go test ./... -v
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Build application
+        run: go build -v -o bin/app ./main.go
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wealthnote-backend
+          path: bin/app
