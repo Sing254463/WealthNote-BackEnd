@@ -34,5 +34,6 @@ func SetupRoutes(app *fiber.App) {
 	transaction := api.Group("/transactions")
 	transaction.Use(middleware.AuthMiddleware()) // ⚠️ ต้องมีบรรทัดนี้
 	transaction.Get("/", controllers.GetTransactionAll)
+	transaction.Post("/", controllers.CreateTransaction)
 
 }

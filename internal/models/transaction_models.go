@@ -33,7 +33,7 @@ type Transaction struct {
 
 // CreateTransactionInput for creating new transaction
 type CreateTransactionInput struct {
-	IDUser            int       `json:"id_user" validate:"required"`
+	IDUser            int       `json:"-" validate:"required"` // ✅ ซ่อนไม่ให้ส่งจาก client
 	IDType            int       `json:"id_type" validate:"required"`
 	Title             string    `json:"title" validate:"required"`
 	Description       *string   `json:"description,omitempty"`
