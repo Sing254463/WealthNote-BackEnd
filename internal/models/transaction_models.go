@@ -21,10 +21,14 @@ type Transaction struct {
 	ID                int       `json:"id" db:"id"`
 	IDUser            int       `json:"id_user" db:"id_user"`
 	IDType            int       `json:"id_type" db:"id_type"`
+	NameTypeT         string    `json:"name_type_t" db:"nametypet"`
+	NameTypeE         string    `json:"name_type_e" db:"nametypee"`
 	Title             string    `json:"title" db:"title"`
 	Description       *string   `json:"description,omitempty" db:"description"`
 	Amount            float64   `json:"amount" db:"amount"`
 	IDCategory        int       `json:"id_category" db:"id_category"`
+	NameCategoryT     string    `json:"name_category_t" db:"name_categoryt"`
+	NameCategoryE     string    `json:"name_category_e" db:"name_categorye"`
 	OtherCategoryName *string   `json:"other_category_name,omitempty" db:"other_category_name"`
 	TransactionDate   time.Time `json:"transaction_date" db:"transaction_date"`
 	CreatedAt         time.Time `json:"created_at" db:"created_at"`

@@ -93,7 +93,7 @@ func CreateTransaction(c *fiber.Ctx) error {
 	}
 
 	// ✅ เรียก service
-	transaction, err := services.CreateTransaction(input)
+	_, err = services.CreateTransaction(input)
 	if err != nil {
 		return utils.ErrorResponse(c, err.Error(), fiber.StatusInternalServerError)
 	}
@@ -101,6 +101,5 @@ func CreateTransaction(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Transaction created successfully",
-		"data":    transaction,
 	})
 }
