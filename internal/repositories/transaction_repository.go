@@ -47,18 +47,17 @@ func (r *TransactionRepository) FindByUserID(userID int) ([]models.Transaction, 
 	var transactions []models.Transaction
 	for rows.Next() {
 		var transaction models.Transaction
-		var typeNameT, categoryNameT sql.NullString
 
 		err := rows.Scan(
 			&transaction.ID,
 			&transaction.IDUser,
 			&transaction.IDType,
-			&typeNameT,
+			&transaction.NameTypeT,
 			&transaction.Title,
 			&transaction.Description,
 			&transaction.Amount,
 			&transaction.IDCategory,
-			&categoryNameT,
+			&transaction.NameCategoryT,
 			&transaction.OtherCategoryName,
 			&transaction.TransactionDate,
 			&transaction.CreatedAt,
