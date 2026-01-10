@@ -32,9 +32,12 @@ func GetTransactionAll(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, "Invalid user ID", fiber.StatusBadRequest)
 	}
-
+	lang := c.Query("lang")
+	if lang == "" {
+		lang = "T"
+	}
 	// ✅ ส่ง user_id ไปยัง service
-	transactions, err := services.GetTransactionByUserID(id)
+	transactions, err := services.GetTransactionByUserID(id, lang)
 	if err != nil {
 		return utils.ErrorResponse(c, err.Error(), fiber.StatusInternalServerError)
 	}
@@ -68,7 +71,6 @@ func CreateTransaction(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, "Invalid user ID", fiber.StatusBadRequest)
 	}
-
 	// ✅ Parse request body เป็น CreateTransactionInput
 	var input models.CreateTransactionInput
 	if err := c.BodyParser(&input); err != nil {
@@ -101,5 +103,45 @@ func CreateTransaction(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Transaction created successfully",
+	})
+}
+
+// UpdateTransaction godoc
+
+// @Summary Update Transaction
+// @Description อัปเดต transaction สำหรับ user ที่ login
+// @Tags Transactions
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Transaction ID"
+// @Param transaction body models.UpdateTransactionInput true "Transaction data"
+// @Success 200 {object} map[string]interface{} "Transaction updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /transactions/{id} [put]
+func UpdateTransaction(c *fiber.Ctx) error {
+
+	// ✅ ดึง transactionID จาก URL parameter
+	transactionIDParam := c.Params("id")
+	transactionID, err := strconv.Atoi(transactionIDParam)
+	if err != nil {
+		return utils.ErrorResponse(c, "Invalid transaction ID", fiber.StatusBadRequest)
+	}
+
+	// ✅ Parse request body เป็น UpdateTransactionInput
+	var input models.UpdateTransactionInput
+	if err := c.BodyParser(&input); err != nil {
+		return utils.ErrorResponse(c, "Invalid request body", fiber.StatusBadRequest)
+	}
+	// ✅ เรียก service
+	_, err = services.UpdateTransaction(transactionID, input)
+	if err != nil {
+		return utils.ErrorResponse(c, err.Error(), fiber.StatusInternalServerError)
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Transaction updated successfully",
 	})
 }

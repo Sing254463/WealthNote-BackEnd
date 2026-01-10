@@ -91,6 +91,23 @@ definitions:
     - title
     - transaction_date
     type: object
+  models.UpdateTransactionInput:
+    properties:
+      amount:
+        type: number
+      description:
+        type: string
+      id_category:
+        type: integer
+      id_type:
+        type: integer
+      other_category_name:
+        type: string
+      title:
+        type: string
+      transaction_date:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact:
@@ -231,6 +248,51 @@ paths:
       security:
       - BearerAuth: []
       summary: Create Transaction
+      tags:
+      - Transactions
+  /transactions/{id}:
+    put:
+      consumes:
+      - application/json
+      description: อัปเดต transaction สำหรับ user ที่ login
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateTransactionInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update Transaction
       tags:
       - Transactions
   /users:

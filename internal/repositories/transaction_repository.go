@@ -15,18 +15,18 @@ func NewTransactionRepository(db *sql.DB) *TransactionRepository {
 }
 
 // FindByUserID - ดึง transactions ของ user
-func (r *TransactionRepository) FindByUserID(userID int) ([]models.Transaction, error) {
+func (r *TransactionRepository) FindByUserID(userID int, lang string) ([]models.Transaction, error) {
 	query := `
         SELECT 
             transactions.id, 
             transactions.id_user, 
             transactions.id_type,
-            type_transactions.nametypet, 
+            type_transactions.nametype` + lang + ` as nametypet, 
             transactions.title, 
             transactions.description, 
             transactions.amount, 
             transactions.id_category,
-            category.name_categoryt, 
+            category.name_category` + lang + ` as name_category, 
             transactions.other_category_name, 
             transactions.transaction_date, 
             transactions.created_at, 
@@ -52,12 +52,12 @@ func (r *TransactionRepository) FindByUserID(userID int) ([]models.Transaction, 
 			&transaction.ID,
 			&transaction.IDUser,
 			&transaction.IDType,
-			&transaction.NameTypeT,
+			&transaction.NameType,
 			&transaction.Title,
 			&transaction.Description,
 			&transaction.Amount,
 			&transaction.IDCategory,
-			&transaction.NameCategoryT,
+			&transaction.NameCategory,
 			&transaction.OtherCategoryName,
 			&transaction.TransactionDate,
 			&transaction.CreatedAt,
@@ -117,4 +117,53 @@ func (r *TransactionRepository) CreateTransaction(input models.CreateTransaction
 	}
 
 	return &transaction, nil
+}
+
+func (r *TransactionRepository) UpdateTransaction(id int, input models.UpdateTransactionInput) (*models.Transaction, error) {
+
+	query := `
+		UPDATE transactions
+		SET id_type = $1,
+			title = $2,
+			description = $3,
+			amount = $4,
+			id_category = $5,
+			other_category_name = $6,
+			transaction_date = $7,
+			updated_at = NOW()
+		WHERE id = $8
+		RETURNING id, id_user, id_type, title, description, amount,
+				  id_category, other_category_name, transaction_date,
+				  created_at, updated_at
+	`
+	var transaction models.Transaction
+	err := r.db.QueryRow(
+		query,
+		input.IDType,
+		input.Title,
+		input.Description,
+		input.Amount,
+		input.IDCategory,
+		input.OtherCategoryName,
+		input.TransactionDate,
+		id,
+	).Scan(
+		&transaction.ID,
+		&transaction.IDUser,
+		&transaction.IDType,
+		&transaction.Title,
+		&transaction.Description,
+		&transaction.Amount,
+		&transaction.IDCategory,
+		&transaction.OtherCategoryName,
+		&transaction.TransactionDate,
+		&transaction.CreatedAt,
+		&transaction.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
